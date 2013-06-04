@@ -2,9 +2,9 @@
 Native Python bindings for [liblognorm](http://www.liblognorm.com/).
 
 ## C Library Requirements
-[libestr](http://libestr.adiscon.com/download/)
-[libee](http://www.libee.org/download/)
-[liblognorm](http://www.liblognorm.com/download/)
+* [libestr](http://libestr.adiscon.com/download/)
+* [libee](http://www.libee.org/download/)
+* [liblognorm](http://www.liblognorm.com/download/)
 
 ## Building pylognorm
 ```bash
