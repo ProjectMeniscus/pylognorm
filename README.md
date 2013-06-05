@@ -14,6 +14,10 @@ python setup.py build_ext --inplace
 nosetests
 ```
 
+## Using pylognorm
+
+* [Pylognorm unit test](https://github.com/zinic/pylognorm/blob/master/pylognorm/tests/bindings_test.py)
+
 ##That Legal Thing...
 
 This software library is released to you under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html). See [LICENSE](https://github.com/zinic/pylognorm/blob/master/LICENSE) for more information.
