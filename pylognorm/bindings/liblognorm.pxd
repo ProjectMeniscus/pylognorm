@@ -7,6 +7,7 @@ cdef extern from "Python.h":
     char * PyBytes_AsString(object bytes) except NULL
     Py_ssize_t PyBytes_Size(object bytes)
 
+    object PyUnicode_FromString(char *string)
     object PyUnicode_FromStringAndSize(char *string, Py_ssize_t length)
     object PyString_FromStringAndSize(char *string, Py_ssize_t length)
     object PyByteArray_FromStringAndSize(char *string, Py_ssize_t length)
@@ -19,10 +20,21 @@ cdef extern from 'libestr.h':
         es_size_t lenStr
         es_size_t lenBuf
 
+    es_str_t* es_newStr(es_size_t lenhint)
+    void es_deleteStr(es_str_t *str)
+    es_str_t* es_newStrFromCStr(const char *cstr, es_size_t len)
+    char *es_str2cstr(es_str_t *s, char *nulEsc)
 
 cdef extern from 'libee/libee.h':
+    enum ee_compLevel:
+        ee_cl_NONE = 0
+        ee_cl_FULL
+
     ctypedef struct ee_ctx:
-        pass
+        ee_compLevel compLevel
+        unsigned short flags
+        int fieldBucketSize
+        int tagBucketSize
 
     ctypedef struct ee_fieldbucket:
         pass
@@ -31,10 +43,16 @@ cdef extern from 'libee/libee.h':
         pass
 
     cdef struct ee_event:
-        pass
+        unsigned objID
+        ee_ctx	ctx
+        ee_tagbucket *tags
+        ee_fieldbucket *fields
 
     ee_ctx ee_initCtx()
     int ee_exitCtx(ee_ctx ctx)
+
+    void ee_setFlags(ee_ctx ctx, unsigned int flags)
+    unsigned int ee_getFlags(ee_ctx ctx)
 
     ee_event* ee_newEvent(ee_ctx ctx)
     void ee_deleteEvent(ee_event *event)

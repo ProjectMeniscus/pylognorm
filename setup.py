@@ -15,19 +15,30 @@ try:
 except ImportError:
     has_cython = False
 
-from os import path
+import os
 from distutils.core import setup
 from distutils.extension import Extension
 
 C_LIBRARIES = ['estr', 'ee', 'lognorm']
+COMPILER_ARGS = list()
+LINKER_ARGS = list()
+
+ENABLE_GDB = os.getenv('ENABLE_GDB')
+
+if ENABLE_GDB and ENABLE_GDB.lower() == 'true':
+    COMPILER_ARGS.append('-g')
+    LINKER_ARGS.append('-g')
 
 cmdclass = dict()
 ext_modules = list()
 
 
 def read(relative):
-    contents = open(relative, 'r').read()
-    return [l for l in contents.split('\n') if l != '']
+    try:
+        contents = open(relative, 'r').read()
+        return [l for l in contents.split('\n') if l != '']
+    except Exception:
+        return list()
 
 
 def ez_install(package):
@@ -39,7 +50,7 @@ def module_files(module_name, *extensions):
     filename_base = module_name.replace('.', '/')
     for extension in extensions:
         filename = '{}.{}'.format(filename_base, extension)
-        if path.exists(filename):
+        if os.path.exists(filename):
             found.append(filename)
             break
     return found
@@ -63,7 +74,9 @@ def cythonize():
             Extension(
                 module,
                 build_list,
-                libraries=C_LIBRARIES))
+                libraries=C_LIBRARIES,
+                extra_compile_args=COMPILER_ARGS,
+                extra_link_args=LINKER_ARGS))
 
 
 cythonize()
