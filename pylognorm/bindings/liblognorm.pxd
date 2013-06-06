@@ -66,9 +66,6 @@ cdef extern from 'liblognorm.h':
     ctypedef struct ln_ctx:
         pass
 
-    ctypedef struct ln_samp:
-        pass
-
     char * ln_version()
     ln_ctx ln_initCtx()
     int ln_exitCtx(ln_ctx ctx)
@@ -77,9 +74,8 @@ cdef extern from 'liblognorm.h':
     int ln_setDebugCB(ln_ctx ctx,
         void (*cb)(void*, char*, size_t), void *cookie)
     void ln_enableDebug(ln_ctx ctx, int i)
-    int ln_loadSample(ln_ctx ctx, char *buf)
-    int ln_loadSamples(ln_ctx ctx, char *file)
 
+    int ln_loadSamples(ln_ctx ctx, char *file)
     int ln_normalizeMsg(ln_ctx ctx,
         char *msg, size_t lenmsg, event_t *event)
     int ln_normalize(ln_ctx ctx, es_str_t *str, ee_event **event)

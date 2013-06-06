@@ -27,9 +27,6 @@ class LogNormalizer(object):
         self.cnormalizer = CLogNormalizer()
         self.rules_loaded = False
 
-    def load_rule(self, rule):
-        self.cnormalizer.load_rule(rule)
-
     def load_rules(self, filename):
         if self.rules_loaded:
             raise Exception('Normalizer rules already loaded.')
@@ -59,11 +56,18 @@ cdef class CLogNormalizer(object):
         ee_exitCtx(self.cee_ctx)
         ln_exitCtx(self.normalizer_ctx)
 
-    def load_rule(self, object rule):
-        ln_loadSample(self.normalizer_ctx, _object_to_cstr(rule))
-
     def load_rules(self, object filename):
-        ln_loadSamples(self.normalizer_ctx, _object_to_cstr(filename))
+        cdef char* cstr_filename
+
+        if PyByteArray_Check(filename):
+            cstr_filename = PyByteArray_AsString(filename)
+        elif PyBytes_Check(filename):
+            cstr_filename = PyBytes_AsString(filename)
+        else:
+            raise Exception(
+                'Unable to convert to cstr: {}'.format(type(filename)))
+
+        ln_loadSamples(self.normalizer_ctx, cstr_filename)
 
     def normalize(self, object data, int length):
         cdef char *normal = self._normalize(_object_to_cstr(data), length)
