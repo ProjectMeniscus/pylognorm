@@ -38,6 +38,7 @@ def read(relative):
         contents = open(relative, 'r').read()
         return [l for l in contents.split('\n') if l != '']
     except Exception:
+        print('Unable to read from build file: {}'.format(relative))
         return list()
 
 
@@ -83,7 +84,7 @@ cythonize()
 
 setup(
     name='pylognorm',
-    version='0.1.1',
+    version='0.1.2',
     description='liblognorm python bindings',
     url='http://github.com/zinic/pylognorm',
     classifiers=[
@@ -103,7 +104,7 @@ setup(
     author_email='john.hopper@jpserver.net',
     license='Apache 2.0',
     tests_require=read('./tools/test-requires'),
-    install_requires=read('./tools/pip-requires'),
+    install_requires=read('./tools/install-requires'),
     test_suite='nose.collector',
     zip_safe=False,
     include_package_data=True,
