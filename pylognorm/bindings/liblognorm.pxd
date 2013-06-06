@@ -22,8 +22,9 @@ cdef extern from 'libestr.h':
 
     es_str_t* es_newStr(es_size_t lenhint)
     void es_deleteStr(es_str_t *str)
-    es_str_t* es_newStrFromCStr(const char *cstr, es_size_t len)
+    es_str_t* es_newStrFromCStr(char *cstr, es_size_t len)
     char *es_str2cstr(es_str_t *s, char *nulEsc)
+
 
 cdef extern from 'libee/libee.h':
     enum ee_compLevel:

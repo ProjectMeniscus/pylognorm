@@ -1,4 +1,5 @@
 build/
+pylognorm.egg-info/
 .coverage
 *.pyc
 .tox
