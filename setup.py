@@ -84,7 +84,7 @@ cythonize()
 
 setup(
     name='pylognorm',
-    version='0.1.3',
+    version='0.2.0',
     description='liblognorm python bindings',
     url='http://github.com/zinic/pylognorm',
     classifiers=[

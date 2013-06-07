@@ -30,7 +30,7 @@ class WhenUsingBindings(unittest.TestCase):
     def test_normalizing(self):
         normalizer = LogNormalizer()
         normalizer.load_rules('./samples/rules.db')
-        normalized_ll = normalizer.normalize(APACHE_LL)
+        event = normalizer.normalize(APACHE_LL)
 
         expected = {
             'user_agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64;'
@@ -47,7 +47,7 @@ class WhenUsingBindings(unittest.TestCase):
             'remote_host': '66.69.25.244'
         }
 
-        self.assertEqual(expected, json.loads(normalized_ll))
+        self.assertEqual(expected, json.loads(event.as_json()))
 
 if __name__ == '__main__':
     unittest.main()

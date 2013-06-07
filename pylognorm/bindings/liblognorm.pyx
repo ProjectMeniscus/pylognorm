@@ -1,7 +1,14 @@
 from os import path
+
 from liblognorm cimport *
 from libc.stdlib cimport malloc, free
 from libc.string cimport strlen
+
+
+ctypedef enum format_kind:
+    fmt_json,
+    fmt_xml,
+    fmt_rfc5424
 
 
 def lib_version():
@@ -10,15 +17,15 @@ def lib_version():
 
 
 cdef char * _object_to_cstr(object obj):
-    cdef char *cstr_filename
+    cdef char *cstr
     if PyByteArray_Check(obj):
-        cstr_filename = PyByteArray_AsString(obj)
+        cstr = PyByteArray_AsString(obj)
     elif PyBytes_Check(obj):
-        cstr_filename = PyBytes_AsString(obj)
+        cstr = PyBytes_AsString(obj)
     else:
         raise Exception(
             'Unable to convert to cstr: {}'.format(type(obj)))
-    return cstr_filename
+    return cstr
 
 
 class LogNormalizer(object):
@@ -36,7 +43,77 @@ class LogNormalizer(object):
         self.rules_loaded = True
 
     def normalize(self, logline):
-        return self.cnormalizer.normalize(logline, len(logline))
+        return self.cnormalizer.normalize(logline)
+
+
+cdef class CEEvent(object):
+
+    cdef ee_event *event
+
+    cdef _set(self, ee_event *event):
+        self.event = event
+
+    def __dealoc__(self):
+        ee_deleteEvent(self.event)
+
+    def as_json(self):
+        return self._format(fmt_json)
+
+    def as_rfc5424(self):
+        return self._format(fmt_rfc5424)
+
+    def as_xml(self):
+        return self._format(fmt_xml)
+
+    def as_csv(self, object extra_data):
+        cdef char *extra_data_cstr = _object_to_cstr(extra_data)
+        cdef object py_str_obj = None
+
+        try:
+            py_str_obj = self._format_csv(extra_data_cstr)
+        finally:
+            free(extra_data_cstr)
+        return py_str_obj
+
+    cdef object _format(self, format_kind fmt):
+        cdef es_str_t *es_out = NULL
+        cdef char *cstr = NULL
+        cdef object py_str_obj = None
+
+        try:
+            if fmt == fmt_json:
+                ee_fmtEventToJSON(self.event, &es_out)
+            elif fmt == fmt_xml:
+                ee_fmtEventToJSON(self.event, &es_out)
+            elif fmt == fmt_rfc5424:
+                ee_fmtEventToJSON(self.event, &es_out)
+            else:
+                raise Exception('Unknown format: {}'.format(fmt))
+
+            cstr = es_str2cstr(es_out, NULL)
+            py_str_obj = PyUnicode_FromString(cstr)
+        finally:
+            es_deleteStr(es_out)
+            free(cstr)
+        return py_str_obj
+
+    cdef object _format_csv(self, char *extra_data):
+        cdef es_str_t *es_out = NULL
+        cdef es_str_t *es_extra_data = NULL
+        cdef char *cstr = NULL
+        cdef object py_str_obj = None
+
+        es_extra_data = es_newStrFromCStr(extra_data, strlen(extra_data))
+
+        try:
+            ee_fmtEventToCSV(self.event, &es_out, es_extra_data)
+            cstr = es_str2cstr(es_out, NULL)
+            py_str_obj = PyUnicode_FromString(cstr)
+        finally:
+            es_deleteStr(es_extra_data)
+            es_deleteStr(es_out)
+            free(cstr)
+        return py_str_obj
 
 
 cdef class CLogNormalizer(object):
@@ -66,37 +143,22 @@ cdef class CLogNormalizer(object):
         else:
             raise Exception(
                 'Unable to convert to cstr: {}'.format(type(filename)))
-
         ln_loadSamples(self.normalizer_ctx, cstr_filename)
 
-    def normalize(self, object data, int length):
-        cdef char *normal = self._normalize(_object_to_cstr(data), length)
-        if normal == NULL:
-            return None
-        else:
-            pyobj = PyUnicode_FromString(normal)
-            free(normal)
-            return pyobj
+    def normalize(self, object data):
+        return self._normalize(_object_to_cstr(data))
 
-    cdef char * _normalize(self, char *data, int length):
-        cdef es_str_t *in_str = es_newStrFromCStr(data, length)
+    cdef CEEvent _normalize(self, char *data):
+        cdef es_str_t *in_str = es_newStrFromCStr(data, strlen(data))
         cdef ee_event *event = NULL
-        cdef char *formatted = NULL
+        cdef CEEvent event_wrapper = None
 
         ln_normalize(self.normalizer_ctx, in_str, &event)
 
         if event != NULL:
-            formatted = self.format_JSON(event)
-            ee_deleteEvent(event)
+            event_wrapper = CEEvent()
+            event_wrapper._set(event)
         es_deleteStr(in_str)
-        return formatted
+        return event_wrapper
 
-    cdef char * format_JSON(self, ee_event *event):
-        cdef es_str_t *out_str = NULL
-        cdef char *cstr = NULL
-
-        ee_fmtEventToJSON(event, &out_str)
-        cstr = es_str2cstr(out_str, NULL)
-        es_deleteStr(out_str)
-        return cstr
 

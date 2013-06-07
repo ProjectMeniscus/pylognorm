@@ -58,6 +58,9 @@ cdef extern from 'libee/libee.h':
     ee_event* ee_newEvent(ee_ctx ctx)
     void ee_deleteEvent(ee_event *event)
     int ee_fmtEventToJSON(ee_event *event, es_str_t **str)
+    int ee_fmtEventToXML(ee_event *event, es_str_t **str)
+    int ee_fmtEventToRFC5424(ee_event *event, es_str_t **str)
+    int ee_fmtEventToCSV(ee_event *event, es_str_t **str, es_str_t *extra)
 
 
 cdef extern from 'liblognorm.h':
