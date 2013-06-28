@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-try:
-    from setuptools import setup, find_packages
-    from setuptools.command import easy_install
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
-    from setuptools.command import easy_install
+import sys
+import os
+
+from setuptools import setup, find_packages
+from setuptools.command import easy_install
+from distutils.extension import Extension
 
 try:
     from Cython.Compiler.Main import compile
@@ -15,9 +13,6 @@ try:
 except ImportError:
     has_cython = False
 
-import os
-from distutils.core import setup
-from distutils.extension import Extension
 
 C_LIBRARIES = ['estr', 'ee', 'lognorm']
 COMPILER_ARGS = list()
@@ -29,21 +24,10 @@ if ENABLE_GDB and ENABLE_GDB.lower() == 'true':
     COMPILER_ARGS.append('-g')
     LINKER_ARGS.append('-g')
 
-cmdclass = dict()
-ext_modules = list()
-
 
 def read(relative):
-    try:
-        contents = open(relative, 'r').read()
-        return [l for l in contents.split('\n') if l != '']
-    except Exception:
-        print('Unable to read from build file: {}'.format(relative))
-        return list()
-
-
-def ez_install(package):
-    easy_install.main(["-U", package])
+    contents = open(relative, 'r').read()
+    return [l for l in contents.split('\n') if l != '']
 
 
 def module_files(module_name, *extensions):
@@ -51,40 +35,55 @@ def module_files(module_name, *extensions):
     filename_base = module_name.replace('.', '/')
     for extension in extensions:
         filename = '{}.{}'.format(filename_base, extension)
-        if os.path.exists(filename):
+        if os.path.isfile(filename):
             found.append(filename)
-            break
     return found
 
 
+def fail_build(reason, code=1):
+    print(reason)
+    sys.exit(code)
+
+
 def cythonize():
-    if has_cython:
-        cmdclass.update({
-            'build_ext': build_ext
-        })
+    if not has_cython:
+        fail_build('In order to build this project, cython is required.')
 
     for module in read('./tools/cython-modules'):
-        if has_cython:
-            build_list = module_files(module, 'pyx', 'pyd')
-            for build_target in build_list:
-                compile(build_target)
-        else:
-            build_list = module_files(module, 'c')
+        for cython_target in module_files(module, 'pyx', 'pyd'):
+            compile(cython_target)
 
-        ext_modules.append(
-            Extension(
-                module,
-                build_list,
+
+def package_c():
+    missing_modules = list()
+    extensions = list()
+
+    for module in read('./tools/cython-modules'):
+        c_files = module_files(module, 'c')
+        if len(c_files) > 0:
+            c_ext = Extension(
+                module.replace('.', os.sep),
+                c_files,
                 libraries=C_LIBRARIES,
                 extra_compile_args=COMPILER_ARGS,
-                extra_link_args=LINKER_ARGS))
+                extra_link_args=LINKER_ARGS)
+            extensions.append(c_ext)
+        else:
+            missing_modules.append(module)
 
+    if len(missing_modules) > 0:
+        fail_build('Missing C files for modules {}'.format(missing_modules))
+    return extensions
 
-cythonize()
+# Got tired of fighting build_ext
+if 'build' in sys.argv:
+    cythonize()
+
+ext_modules = package_c()
 
 setup(
     name='pylognorm',
-    version='0.2.0',
+    version='0.2.1',
     description='liblognorm python bindings',
     url='http://github.com/zinic/pylognorm',
     classifiers=[
@@ -108,7 +107,7 @@ setup(
     test_suite='nose.collector',
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['ez_setup']),
-    cmdclass=cmdclass,
+    packages=find_packages(exclude=['ez_setup', '*.tests']),
     ext_modules=ext_modules
 )
+
