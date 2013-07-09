@@ -32,15 +32,15 @@ class LogNormalizer(object):
 
     def __init__(self):
         self.cnormalizer = CLogNormalizer()
-        self.rules_loaded = False
+
+    def load_rule(self, rule):
+        self.cnormalizer.load_rule(rule)
 
     def load_rules(self, filename):
-        if self.rules_loaded:
-            raise Exception('Normalizer rules already loaded.')
         if not path.exists(filename):
-            raise Exception('Unable to locate file: {}'.format(filename))
+            raise Exception(
+                'Unable to locate rules file: {}'.format(filename))
         self.cnormalizer.load_rules(filename)
-        self.rules_loaded = True
 
     def normalize(self, logline):
         return self.cnormalizer.normalize(logline)
@@ -66,14 +66,7 @@ cdef class CEEvent(object):
         return self._format(fmt_xml)
 
     def as_csv(self, object extra_data):
-        cdef char *extra_data_cstr = _object_to_cstr(extra_data)
-        cdef object py_str_obj = None
-
-        try:
-            py_str_obj = self._format_csv(extra_data_cstr)
-        finally:
-            free(extra_data_cstr)
-        return py_str_obj
+        return self._format_csv(_object_to_cstr(extra_data))
 
     cdef object _format(self, format_kind fmt):
         cdef es_str_t *es_out = NULL
@@ -126,24 +119,15 @@ cdef class CLogNormalizer(object):
         self.cee_ctx = ee_initCtx()
         ln_setEECtx(self.normalizer_ctx, self.cee_ctx);
 
-    def __init__(self):
-        pass
-
     def __dealoc__(self):
         ee_exitCtx(self.cee_ctx)
         ln_exitCtx(self.normalizer_ctx)
 
-    def load_rules(self, object filename):
-        cdef char* cstr_filename
+    def load_rule(self, object rule_str):
+        ln_loadSample(self.normalizer_ctx, _object_to_cstr(rule_str))
 
-        if PyByteArray_Check(filename):
-            cstr_filename = PyByteArray_AsString(filename)
-        elif PyBytes_Check(filename):
-            cstr_filename = PyBytes_AsString(filename)
-        else:
-            raise Exception(
-                'Unable to convert to cstr: {}'.format(type(filename)))
-        ln_loadSamples(self.normalizer_ctx, cstr_filename)
+    def load_rules(self, object filename):
+        ln_loadSamples(self.normalizer_ctx, _object_to_cstr(filename))
 
     def normalize(self, object data):
         return self._normalize(_object_to_cstr(data))

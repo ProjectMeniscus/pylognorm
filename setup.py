@@ -62,7 +62,7 @@ def package_c():
         c_files = module_files(module, 'c')
         if len(c_files) > 0:
             c_ext = Extension(
-                module.replace('.', os.sep),
+                module,
                 c_files,
                 libraries=C_LIBRARIES,
                 extra_compile_args=COMPILER_ARGS,
