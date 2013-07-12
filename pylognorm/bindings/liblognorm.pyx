@@ -16,8 +16,8 @@ def lib_version():
     return PyString_FromStringAndSize(version, strlen(version))
 
 
-cdef char * _object_to_cstr(object obj):
-    cdef char *cstr
+cdef char * _object_to_cstr(object obj) except NULL:
+    cdef char *cstr = NULL
     if PyByteArray_Check(obj):
         cstr = PyByteArray_AsString(obj)
     elif PyBytes_Check(obj):
@@ -124,13 +124,18 @@ cdef class CLogNormalizer(object):
         ln_exitCtx(self.normalizer_ctx)
 
     def load_rule(self, object rule_str):
-        ln_loadSample(self.normalizer_ctx, _object_to_cstr(rule_str))
+        pass
+#        ln_loadSample(self.normalizer_ctx, _object_to_cstr(rule_str))
 
     def load_rules(self, object filename):
         ln_loadSamples(self.normalizer_ctx, _object_to_cstr(filename))
 
     def normalize(self, object data):
-        return self._normalize(_object_to_cstr(data))
+        normalize_target = data
+        # This was a pain in the ass to do in c
+        if isinstance(data, unicode):
+            normalize_target = data.encode('UTF-8')
+        return self._normalize(_object_to_cstr(normalize_target))
 
     cdef CEEvent _normalize(self, char *data):
         cdef es_str_t *in_str = es_newStrFromCStr(data, strlen(data))

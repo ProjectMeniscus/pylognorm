@@ -78,7 +78,7 @@ cdef extern from 'liblognorm.h':
         void (*cb)(void*, char*, size_t), void *cookie)
     void ln_enableDebug(ln_ctx ctx, int i)
 
-    int ln_loadSample(ln_ctx ctx, char *buf)
+    #int ln_loadSample(ln_ctx ctx, char *buf)
     int ln_loadSamples(ln_ctx ctx, char *file)
     int ln_normalizeMsg(ln_ctx ctx,
         char *msg, size_t lenmsg, event_t *event)
