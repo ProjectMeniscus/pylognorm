@@ -12,6 +12,7 @@ APACHE_LL_STR = (
     'o/20100101 Firefox/18.0"'
 )
 
+
 def performance(duration=10, print_output=True):
     normalizer = LogNormalizer()
     normalizer.load_rules('./samples/rules.db')
@@ -28,7 +29,6 @@ def performance(duration=10, print_output=True):
             runs,
             duration,
             runs / float(duration)))
-
 
 if __name__ == '__main__':
     print('Executing warmup')

@@ -5,14 +5,11 @@ import json
 from pylognorm import LogNormalizer, lib_version
 
 
-APACHE_LL_STR = '127.0.0.1 - - [12/Jul/2013:19:31:24 +0000] "GET /test HTTP/1.1" 404 461 "-" "curl/7.29.0"'
-"""(
-    '66.69.25.244 - - [13/Jan/2013:09:57:51 -0600] "GET /wiki/skins/common/'
-    'commonPrint.css?270 HTTP/1.1" 304 212 "http://nu.realityhub.com/wiki/i'
-    'ndex.php/Main_Page" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:18.0) Geck'
-    'o/20100101 Firefox/18.0"'
+APACHE_LL_STR = (
+    '127.0.0.1 - - [12/Jul/2013:19:31:24 +0000] "GET /test '
+    'HTTP/1.1" 404 461 "-" "curl/7.29.0"'
 )
-"""
+
 APACHE_LL_UNICODE = unicode(
     '66.69.25.244 - - [13/Jan/2013:09:57:51 -0600] "GET /wiki/skins/common/'
     'commonPrint.css?270 HTTP/1.1" 304 212 "http://nu.realityhub.com/wiki/i'
