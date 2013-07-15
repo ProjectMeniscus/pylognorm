@@ -77,9 +77,9 @@ cdef class CEEvent(object):
             if fmt == fmt_json:
                 ee_fmtEventToJSON(self.event, &es_out)
             elif fmt == fmt_xml:
-                ee_fmtEventToJSON(self.event, &es_out)
+                ee_fmtEventToXML(self.event, &es_out)
             elif fmt == fmt_rfc5424:
-                ee_fmtEventToJSON(self.event, &es_out)
+                ee_fmtEventToRFC5424(self.event, &es_out)
             else:
                 raise Exception('Unknown format: {}'.format(fmt))
 
