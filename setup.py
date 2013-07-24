@@ -62,7 +62,7 @@ def package_c():
         c_files = module_files(module, 'c')
         if len(c_files) > 0:
             c_ext = Extension(
-                module.replace('.', os.sep),
+                module,
                 c_files,
                 libraries=C_LIBRARIES,
                 extra_compile_args=COMPILER_ARGS,
@@ -83,7 +83,7 @@ ext_modules = package_c()
 
 setup(
     name='pylognorm',
-    version='0.2.1',
+    version='0.3.0',
     description='liblognorm python bindings',
     url='http://github.com/zinic/pylognorm',
     classifiers=[

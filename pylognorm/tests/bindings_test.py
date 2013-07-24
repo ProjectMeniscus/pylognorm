@@ -5,11 +5,22 @@ import json
 from pylognorm import LogNormalizer, lib_version
 
 
-APACHE_LL = (
+APACHE_LL_STR = (
+    '127.0.0.1 - - [12/Jul/2013:19:31:24 +0000] "GET /test '
+    'HTTP/1.1" 404 461 "-" "curl/7.29.0"'
+)
+
+APACHE_LL_UNICODE = unicode(
     '66.69.25.244 - - [13/Jan/2013:09:57:51 -0600] "GET /wiki/skins/common/'
     'commonPrint.css?270 HTTP/1.1" 304 212 "http://nu.realityhub.com/wiki/i'
     'ndex.php/Main_Page" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:18.0) Geck'
     'o/20100101 Firefox/18.0"'
+)
+
+APACHE_RULE = (
+    'rule=:%remote_host:ipv4% %a:word% %b:word% [%timestamp:char'
+    '-to:]%] "%method:word% %uri:word% %http_version:char-to:"%" %status_co'
+    'de:word% %bytes:word% %url:quoted-string% %user_agent:quoted-string%'
 )
 
 
@@ -23,14 +34,56 @@ class WhenUsingBindings(unittest.TestCase):
         self.assertIsNotNone(version)
         self.assertTrue(version != '')
 
+    def test_loading_single_rules(self):
+        normalizer = LogNormalizer()
+        normalizer.load_rule(APACHE_RULE)
+        event = normalizer.normalize(APACHE_LL_STR)
+
+        expected = {
+            'user_agent': 'curl/7.29.0',
+            'url': '-',
+            'bytes': '461',
+            'status_code': '404',
+            'http_version': 'HTTP/1.1',
+            'uri': '/test',
+            'method': 'GET',
+            'timestamp': '12/Jul/2013:19:31:24 +0000',
+            'b': '-',
+            'a': '-',
+            'remote_host': '127.0.0.1'
+        }
+
+        self.assertEqual(expected, json.loads(event.as_json()))
+
     def test_loading_rules(self):
         normalizer = LogNormalizer()
         normalizer.load_rules('./samples/rules.db')
 
-    def test_normalizing(self):
+    def test_normalizing_string(self):
         normalizer = LogNormalizer()
         normalizer.load_rules('./samples/rules.db')
-        event = normalizer.normalize(APACHE_LL)
+        event = normalizer.normalize(APACHE_LL_STR)
+
+        expected = {
+            'user_agent': 'curl/7.29.0',
+            'url': '-',
+            'bytes': '461',
+            'status_code': '404',
+            'http_version': 'HTTP/1.1',
+            'uri': '/test',
+            'method': 'GET',
+            'timestamp': '12/Jul/2013:19:31:24 +0000',
+            'b': '-',
+            'a': '-',
+            'remote_host': '127.0.0.1'
+        }
+
+        self.assertEqual(expected, json.loads(event.as_json()))
+
+    def test_normalizing_unicode(self):
+        normalizer = LogNormalizer()
+        normalizer.load_rules('./samples/rules.db')
+        event = normalizer.normalize(APACHE_LL_UNICODE)
 
         expected = {
             'user_agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64;'
