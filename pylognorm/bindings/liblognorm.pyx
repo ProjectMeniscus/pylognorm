@@ -16,6 +16,15 @@ def lib_version():
     return PyString_FromStringAndSize(version, strlen(version))
 
 
+cdef char * _pystr_to_cstr(object obj) except NULL:
+    target = obj
+    # This was a pain in the ass to do in c however this may
+    # not be completely correct either
+    if isinstance(obj, unicode):
+        target = obj.encode('UTF-8')
+    return _object_to_cstr(target)
+
+
 cdef char * _object_to_cstr(object obj) except NULL:
     cdef char *cstr = NULL
     if PyByteArray_Check(obj):
@@ -66,7 +75,7 @@ cdef class CEEvent(object):
         return self._format(fmt_xml)
 
     def as_csv(self, object extra_data):
-        return self._format_csv(_object_to_cstr(extra_data))
+        return self._format_csv(_pystr_to_cstr(extra_data))
 
     cdef object _format(self, format_kind fmt):
         cdef es_str_t *es_out = NULL
@@ -124,18 +133,13 @@ cdef class CLogNormalizer(object):
         ln_exitCtx(self.normalizer_ctx)
 
     def load_rule(self, object rule_str):
-        pass
-#        ln_loadSample(self.normalizer_ctx, _object_to_cstr(rule_str))
+        ln_loadSample(self.normalizer_ctx, _pystr_to_cstr(rule_str))
 
     def load_rules(self, object filename):
-        ln_loadSamples(self.normalizer_ctx, _object_to_cstr(filename))
+        ln_loadSamples(self.normalizer_ctx, _pystr_to_cstr(filename))
 
     def normalize(self, object data):
-        normalize_target = data
-        # This was a pain in the ass to do in c
-        if isinstance(data, unicode):
-            normalize_target = data.encode('UTF-8')
-        return self._normalize(_object_to_cstr(normalize_target))
+        return self._normalize(_pystr_to_cstr(data))
 
     cdef CEEvent _normalize(self, char *data):
         cdef es_str_t *in_str = es_newStrFromCStr(data, strlen(data))
