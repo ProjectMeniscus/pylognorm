@@ -83,7 +83,7 @@ ext_modules = package_c()
 
 setup(
     name='pylognorm',
-    version='0.2.3',
+    version='0.3.0',
     description='liblognorm python bindings',
     url='http://github.com/zinic/pylognorm',
     classifiers=[
