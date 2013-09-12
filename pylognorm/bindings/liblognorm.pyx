@@ -126,7 +126,7 @@ cdef class CLogNormalizer(object):
     def __cinit__(self):
         self.normalizer_ctx = ln_initCtx()
         self.cee_ctx = ee_initCtx()
-        ln_setEECtx(self.normalizer_ctx, self.cee_ctx);
+        ln_setEECtx(self.normalizer_ctx, self.cee_ctx)
 
     def __dealoc__(self):
         ee_exitCtx(self.cee_ctx)
