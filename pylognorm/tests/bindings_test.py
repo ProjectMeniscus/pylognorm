@@ -1,5 +1,4 @@
 import unittest
-import time
 import json
 
 from pylognorm import LogNormalizer, lib_version
@@ -25,9 +24,6 @@ APACHE_RULE = (
 
 
 class WhenUsingBindings(unittest.TestCase):
-
-    def test_init(self):
-        normalizer = LogNormalizer()
 
     def test_version(self):
         version = lib_version()
